@@ -14,7 +14,7 @@ public class Query {
     static Map<String, Object> parseQueryInput(String input) {
         Map<String, Object> queryData = new HashMap<>();
 
-        int yearLastDigit = input.charAt(7);
+        int yearLastDigit = Character.getNumericValue(input.charAt(7));
 
         int startYear = yearLastDigit > 1 ? 2000 + yearLastDigit : 2010 + yearLastDigit;
         int endYear = yearLastDigit > 1 ? 2010 + yearLastDigit : 2020 + yearLastDigit;
@@ -26,6 +26,8 @@ public class Query {
 
         return queryData;
     }
+
+
 
 //    static toString() {
 //
