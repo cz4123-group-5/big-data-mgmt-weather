@@ -18,7 +18,7 @@ public class Main {
 
         System.out.println(query);
 
-        // ingest data from data/*.csv (data is pre-sorted)
+        // ingest data from data/*.csv 
 
         // scan data
 
