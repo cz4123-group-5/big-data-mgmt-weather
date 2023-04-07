@@ -19,6 +19,20 @@ public class Main {
         System.out.println(query);
 
         // ingest data from data/*.csv 
+                HashMap<String, Integer> dataTypes = new HashMap<>();
+        dataTypes.put("id", ColumnStoreParent.INTEGER_DATATYPE);
+        dataTypes.put("Timestamp", ColumnStoreParent.TIME_DATATYPE);
+        dataTypes.put("Station", ColumnStoreParent.STRING_DATATYPE);
+        dataTypes.put("Temperature", ColumnStoreParent.FLOAT_DATATYPE);
+        dataTypes.put("Humidity", ColumnStoreParent.FLOAT_DATATYPE);
+
+
+        ColumnStoreParent csMM = new ColumnStoreMM(dataTypes);
+        ColumnStoreParent csDisk = new ColumnStoreDisk(dataTypes);
+        ColumnStoreParent csDiskEnhanced = new ColumnStoreDiskEnhanced(dataTypes);
+        List<ColumnStoreParent> columnStores = Arrays.asList(csMM, csDisk, csDiskEnhanced);
+        
+        
 
         // scan data
 
