@@ -2,10 +2,7 @@ package src;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -23,13 +20,14 @@ public class Main {
         System.out.println(query);
 
         // ingest data from data/*.csv (data needs to be sorted!)
-        ArrayList<String> id = new ArrayList<>();
-        ArrayList<LocalDateTime> timestamp = new ArrayList<>();
-        ArrayList<String> location = new ArrayList<>(); // should this be an enum value?
-        ArrayList<Float> temperature = new ArrayList<>();
-        ArrayList<Float> humidity = new ArrayList<>();
+//        ArrayList<String> id = new ArrayList<>();
+//        ArrayList<LocalDateTime> timestamp = new ArrayList<>();
+//        ArrayList<String> location = new ArrayList<>(); // should this be an enum value?
+//        ArrayList<Float> temperature = new ArrayList<>();
+//        ArrayList<Float> humidity = new ArrayList<>();
 
         // ===== mocked =========
+        // todo: change index method/strategy
         Map<String, Integer> yearStartIndex = new HashMap<>(); // map year start to array index
         yearStartIndex.put("2007", 94998);
         Map<String, Integer> yearEndIndex = new HashMap<>(); // map year start to array index
@@ -44,11 +42,11 @@ public class Main {
         dataTypes.put("Temperature", ColumnStoreParent.FLOAT_DATATYPE);
         dataTypes.put("Humidity", ColumnStoreParent.FLOAT_DATATYPE);
 
-
+        // todo: create a ColumnStoreBase class with common datatypes - datatypes above becomes redundant
         ColumnStoreParent csMM = new ColumnStoreMM(dataTypes);
         ColumnStoreParent csDisk = new ColumnStoreDisk(dataTypes);
         // ColumnStoreParent csDiskEnhanced = new ColumnStoreDiskEnhanced(dataTypes);
-        List<ColumnStoreParent> columnStores = Arrays.asList(csMM, csDisk); // csDiskEnhanced
+        // List<ColumnStoreParent> columnStores = Arrays.asList(csMM, csDisk); // csDiskEnhanced
         
         // scan data
 
@@ -64,28 +62,43 @@ public class Main {
         Integer scanEndIndex = yearEndIndex.get(endYear);
 
         class Result {
-            String id;
             LocalDateTime timestamp;
             String location;
-            Float temperature;
-            Float humidity;
-
+            String category; // todo: use enum
+            Float value;
             // todo: add read+write methods
         }
 
         ArrayList<Result> results = new ArrayList();
 
         for (int i = scanStartIndex; i <= scanEndIndex; i++) {
-            if (location.get(i).equals(query.get("location"))) {
-                Result tempResult = new Result();
-                tempResult.id = id.get(i);
-                tempResult.timestamp = timestamp.get(i);
-                tempResult.location = location.get(i);
-                tempResult.temperature = temperature.get(i);
-                tempResult.humidity = humidity.get(i);
+            for (int j = 0; j < 31; j++) { // monthly loop
+
+                Result minTemp = new Result();
+                Result maxTemp = new Result();
+                Result minHumidity = new Result();
+                Result maxHumidity = new Result();
+
+                if (location.get(i).equals(query.get("location"))) {
+
+                    if (minTemp > temperature.get(i)) {
+                        Result tempResult = new Result();
+                        tempResult.id = id.get(i);
+                        tempResult.timestamp = timestamp.get(i);
+                        tempResult.location = location.get(i);
+                        tempResult.temperature = temperature.get(i);
+                        tempResult.humidity = humidity.get(i);
+                        minTemp = tempResult;
+                    }
+
+                }
+
+                // todo: add to results
+
             }
         }
 
         // output result to file
+
     }
 }
