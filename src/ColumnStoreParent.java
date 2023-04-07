@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 /**
  * An abstract class representing a column store.
  */
-public abstract class ColumnStoreAbstract {
+public abstract class ColumnStoreParent {
     public static final int STRING_DATATYPE = 0;
     public static final int INTEGER_DATATYPE = 1;
     public static final int FLOAT_DATATYPE = 2;
