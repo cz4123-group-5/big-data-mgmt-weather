@@ -1,10 +1,17 @@
 package src;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner scan = new Scanner(System.in);
 
         System.out.println("=== Singapore Weather Query System ===");
@@ -19,23 +26,21 @@ public class Main {
         System.out.println(query);
 
         // ingest data from data/*.csv 
-                HashMap<String, Integer> dataTypes = new HashMap<>();
-        dataTypes.put("id", ColumnStoreParent.INTEGER_DATATYPE);
-        dataTypes.put("Timestamp", ColumnStoreParent.TIME_DATATYPE);
-        dataTypes.put("Station", ColumnStoreParent.STRING_DATATYPE);
-        dataTypes.put("Temperature", ColumnStoreParent.FLOAT_DATATYPE);
-        dataTypes.put("Humidity", ColumnStoreParent.FLOAT_DATATYPE);
-
-
-        ColumnStoreParent csMM = new ColumnStoreMM(dataTypes);
-        ColumnStoreParent csDisk = new ColumnStoreDisk(dataTypes);
-        ColumnStoreParent csDiskEnhanced = new ColumnStoreDiskEnhanced(dataTypes);
-        List<ColumnStoreParent> columnStores = Arrays.asList(csMM, csDisk, csDiskEnhanced);
-        
         
 
         // scan data
 
         // output result to file
+        
+       List<Output> list = new ArrayList<>();
+    // test write to csv file using dummy output
+       Output output1 = new Output(LocalDateTime.of(2018, 10, 01, 13, 30), "Changi", "Max Humidity", (float) 100);
+       Output output2 = new Output(LocalDateTime.of(2018, 11, 01, 12, 00), "Changi", "Max Temperature", (float) 32.2);
+       Output output3 = new Output(LocalDateTime.of(2018, 11, 05, 12, 15), "Changi", "Min Temperature", (float) 26.5);
+       list.add(output1);
+       list.add(output2);
+       list.add(output3);
+       
+       Output.writeOutput("ScanResult_<" + matricNum + ">.csv", list);
     }
 }
