@@ -14,7 +14,7 @@ public class SimpleColumnarDatabase {
     private final List<Station> stations;
     private final List<Double> temperatures;
     private final List<Double> humidities;
-    private final Map<Integer, Integer> indexMap;
+    private final CustomSkipList<Integer> indexList;
 
     public SimpleColumnarDatabase() {
         ids = new ArrayList<>();
@@ -22,25 +22,32 @@ public class SimpleColumnarDatabase {
         stations = new ArrayList<>();
         temperatures = new ArrayList<>();
         humidities = new ArrayList<>();
-        indexMap = new HashMap<>();
+        indexList = new CustomSkipList<>();
     }
 
     public void insert(int id, LocalDateTime timestamp, Station station, Double temperature, Double humidity) {
-        int index = Collections.binarySearch(timestamps, timestamp, (t1, t2) -> t1.compareTo(t2));
+        ids.add(id);
+        timestamps.add(timestamp);
+        stations.add(station);
+        temperatures.add(temperature);
+        humidities.add(humidity);
 
-        if (index < 0) {
-            index = -(index + 1);
+        int unsortedIndex = ids.size() - 1;
+
+        // insert index in indexMap, sorting against timestamp
+        if (indexList.isEmpty()) {
+            indexList.add(0, unsortedIndex); //  first element
+        } else {
+            int targetIndex = 0;
+            for (Integer unsorted_i : indexList) {
+                if (timestamps.get(unsorted_i).isAfter(timestamp)) {
+                    break;
+                }
+                targetIndex++;
+            }
+            indexList.add(targetIndex, unsortedIndex);
         }
-
-        ids.add(index, id);
-        timestamps.add(index, timestamp);
-        stations.add(index, station);
-        temperatures.add(index, temperature);
-        humidities.add(index, humidity);
-
-        for (int i = index; i < ids.size(); i++) {
-            indexMap.put(ids.get(i), i);
-        }
+//        System.out.println("Inserted record " + id + " at index " + unsortedIndex);
     }
 
     /**
@@ -55,18 +62,24 @@ public class SimpleColumnarDatabase {
         System.out.println("Generating monthly stats...");
         Map<YearMonth, MonthlyStats> monthlyStatsMap = new HashMap<>();
 
-        for (int i = 0; i < timestamps.size(); i++) {
-            LocalDateTime timestamp = timestamps.get(i);
+        for (Integer unsortedIndex : indexList) {
+//            int unsortedIndex = indexList.get(i);
+            // print every 1000 records
+            if (unsortedIndex % 10 == 0) {
+                System.out.println("Getting " + unsortedIndex + " records");
+            }
+
+            LocalDateTime timestamp = timestamps.get(unsortedIndex);
             LocalDate date = timestamp.toLocalDate();
             int year = date.getYear();
 
-            if (year != startYear && year != endYear || !stations.get(i).equals(station)) {
+            if (year != startYear && year != endYear || !stations.get(unsortedIndex).equals(station)) {
                 continue;
             }
 
             YearMonth yearMonth = YearMonth.from(date);
-            Double temperature = temperatures.get(i);
-            Double humidity = humidities.get(i);
+            Double temperature = temperatures.get(unsortedIndex);
+            Double humidity = humidities.get(unsortedIndex);
 
             MonthlyStats currentStats = monthlyStatsMap.get(yearMonth);
             if (currentStats == null) {
