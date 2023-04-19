@@ -29,7 +29,12 @@ public class Output {
         FileOutputStream outputStream = new FileOutputStream(outputFile, true);
         outputStream.write("Date,Station,Category,Value\n".getBytes(StandardCharsets.UTF_8));
 
-        for (Map.Entry<YearMonth, MonthlyStats> entry : monthlyStats.entrySet()) {
+        // iterate chronologically
+        ArrayList<Map.Entry<YearMonth, MonthlyStats>> monthlyStatsEntries = new ArrayList<>(monthlyStats.entrySet());
+
+        monthlyStatsEntries.sort(Map.Entry.comparingByKey());
+
+        for (Map.Entry<YearMonth, MonthlyStats> entry : monthlyStatsEntries) {
             MonthlyStats entryValue = entry.getValue();
             ArrayList<MonthlyStat> stats = new ArrayList<>();
 
