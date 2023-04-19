@@ -62,6 +62,12 @@ public class Main {
         System.out.print("Enter your matriculation number: ");
         String matriculationNumber = scanner.nextLine();
 
+        // check that matriculation number has valid format i.e. U2022923F or U1921880A
+        if (!matriculationNumber.matches("U[0-9]{7}[A-Z]")) {
+            System.out.println("Invalid matriculation number format.");
+            return;
+        }
+
         int lastDigit = Character.getNumericValue(matriculationNumber.charAt(matriculationNumber.length() - 2));
         int startYear = lastDigit > 1 ? 2000 + lastDigit : 2010 + lastDigit;
         int endYear = startYear + 10;

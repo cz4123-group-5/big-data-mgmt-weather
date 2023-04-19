@@ -1,4 +1,6 @@
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -6,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
@@ -14,9 +17,19 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
     private int bufferSize;
     private long size;
     private Class<E> elementType;
+    private List<E> cache;
+    private int cacheSize;
+    private final int cacheThreshold = 100000;
 
     public ArrayListOnDisk(String filename, Class<E> elementType) {
-        this.file = new File(filename);;
+
+
+
+        this.file = new File(filename);
+        if (file.exists()) {
+            file.delete();
+        }
+
         this.elementType = elementType;
         this.bufferSize = getBufferSizeForType(elementType);
         try {
@@ -25,17 +38,28 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        cache = new ArrayList<>();
+        cacheSize = 0;
     }
 
     @Override
     public E get(int index) {
-        try {
-            raf.seek(index * bufferSize);
-            byte[] buffer = new byte[bufferSize];
-            raf.read(buffer);
-            return deserialize(buffer);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index out of bounds: " + index);
+        }
+        if (index >= size - cacheSize) {
+            // Element is in the cache
+            return cache.get((int) (index - (size - cacheSize)));
+        } else {
+            // Element is in the file
+            try {
+                raf.seek((long) index * bufferSize);
+                byte[] buffer = new byte[bufferSize];
+                raf.read(buffer);
+                return deserialize(buffer);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -46,15 +70,13 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
 
     @Override
     public boolean add(E e) {
-        try {
-            byte[] buffer = serialize(e);
-            raf.seek(size * bufferSize);
-            raf.write(buffer);
-            size++;
-            return true;
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        cache.add(e);
+        cacheSize++;
+        if (cacheSize >= cacheThreshold) {
+            writeCacheToDisk();
         }
+        size++;
+        return true;
     }
 
     private byte[] serialize(E object) {
@@ -83,9 +105,22 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
         } else if (elementType == Station.class) {
             Station value = (Station) object;
             byte[] nameBytes = value.getName().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + nameBytes.length);
+//            System.out.println("value.getName(): " + value.getName());
+//            System.out.println("nameBytes.length: " + nameBytes.length);
+//            System.out.println("allocate: " + (Integer.BYTES + nameBytes.length) + " bytes (should be 24)");
+            ByteBuffer buffer = ByteBuffer.allocate(getBufferSizeForType(elementType));
             buffer.putInt(nameBytes.length);
             buffer.put(nameBytes);
+            // Padding
+//            System.out.println("bufferSize: " + bufferSize);
+//            System.out.println("Integer.BYTES: " + Integer.BYTES);
+//            System.out.println("nameBytes.length: " + nameBytes.length);
+            int paddingSize = bufferSize - Integer.BYTES - nameBytes.length;
+//            System.out.println("paddingSize: " + paddingSize);
+            for (int i = 0; i < paddingSize; i++) {
+//                System.out.println("padding: " + i);
+                buffer.put((byte) 0);
+            }
             return buffer.array();
         }
         throw new UnsupportedOperationException("Serialization not supported for type: " + elementType);
@@ -139,7 +174,7 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
             for (Station station : Station.values()) {
                 maxNameLength = Math.max(maxNameLength, station.getName().length());
             }
-            return Integer.BYTES + maxNameLength;
+            return Integer.BYTES + maxNameLength * Character.BYTES;
         }
         // Handle other types if necessary
         throw new UnsupportedOperationException("Buffer size calculation not supported for type: " + type);
@@ -147,11 +182,23 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
 
     @Override
     protected void finalize() throws Throwable {
+        if (cacheSize > 0) {
+            writeCacheToDisk();
+        }
         raf.close();
         super.finalize();
     }
 
     public void writeCacheToDisk() {
-        // not implemented yet
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file, true))) {
+            for (E element : cache) {
+                byte[] buffer = serialize(element);
+                bos.write(buffer);
+            }
+            cache.clear();
+            cacheSize = 0;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }
