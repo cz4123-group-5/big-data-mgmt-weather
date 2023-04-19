@@ -14,18 +14,32 @@ public class SimpleColumnarDatabase {
     private final List<Station> stations;
     private final List<Double> temperatures;
     private final List<Double> humidities;
-    private final CustomSkipList<Integer> indexList;
+    private final SkipList indexList;
 
+    /**
+     * Constructor for SimpleColumnarDatabase
+     */
     public SimpleColumnarDatabase() {
         ids = new ArrayList<>();
         timestamps = new ArrayList<>();
         stations = new ArrayList<>();
         temperatures = new ArrayList<>();
         humidities = new ArrayList<>();
-        indexList = new CustomSkipList<>();
+        SkipList.TimestampComparator comparator = new SkipList.TimestampComparator(this.timestamps);
+        indexList = new SkipList(comparator);
     }
 
+    /**
+     * Inserts a new record into the database
+     *
+     * @param id          the id of the record
+     * @param timestamp   the timestamp of the record
+     * @param station     the station of the record
+     * @param temperature the temperature of the record
+     * @param humidity    the humidity of the record
+     */
     public void insert(int id, LocalDateTime timestamp, Station station, Double temperature, Double humidity) {
+        // append new data
         ids.add(id);
         timestamps.add(timestamp);
         stations.add(station);
@@ -33,42 +47,22 @@ public class SimpleColumnarDatabase {
         humidities.add(humidity);
 
         int unsortedIndex = ids.size() - 1;
-
-        // insert index in indexMap, sorting against timestamp
-        if (indexList.isEmpty()) {
-            indexList.add(0, unsortedIndex); //  first element
-        } else {
-            int targetIndex = 0;
-            for (Integer unsorted_i : indexList) {
-                if (timestamps.get(unsorted_i).isAfter(timestamp)) {
-                    break;
-                }
-                targetIndex++;
-            }
-            indexList.add(targetIndex, unsortedIndex);
-        }
-//        System.out.println("Inserted record " + id + " at index " + unsortedIndex);
+        indexList.add(unsortedIndex);
     }
 
     /**
-     * Returns the maximum and minimum temperatures and humidities for each month within the specified years.
+     * Gets the monthly stats for a given station
      *
-     * @param startYear the start year of the time period (inclusive)
-     * @param endYear   the end year of the time period (inclusive)
-     * @param station   the station name to filter the records by
-     * @return a map containing the year and month as a key (YearMonth), and a MonthlyStats object containing the maximum and minimum temperatures and humidities for that month as the value
+     * @param startYear the start year
+     * @param endYear   the end year
+     * @param station   the station
+     * @return a map of YearMonth to MonthlyStats
      */
     public Map<YearMonth, MonthlyStats> getMonthlyStats(int startYear, int endYear, Station station) {
         System.out.println("Generating monthly stats...");
         Map<YearMonth, MonthlyStats> monthlyStatsMap = new HashMap<>();
 
         for (Integer unsortedIndex : indexList) {
-//            int unsortedIndex = indexList.get(i);
-            // print every 1000 records
-            if (unsortedIndex % 10 == 0) {
-                System.out.println("Getting " + unsortedIndex + " records");
-            }
-
             LocalDateTime timestamp = timestamps.get(unsortedIndex);
             LocalDate date = timestamp.toLocalDate();
             int year = date.getYear();
@@ -134,10 +128,6 @@ public class SimpleColumnarDatabase {
                 }
             }
         }
-        System.out.println("Generated monthly stats.");
-
         return monthlyStatsMap;
     }
-
-
 }
