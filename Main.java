@@ -8,7 +8,10 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
-
+    /**
+     * Main method to handle input and output.
+     * @param args the command line arguments
+     */
     public static void main(String[] args) {
         SimpleColumnarDatabase db = new SimpleColumnarDatabase();
 
@@ -64,9 +67,10 @@ public class Main {
         int secondLastDigit = Character.getNumericValue(matriculationNumber.charAt(matriculationNumber.length() - 3));
         Station station = secondLastDigit % 2 == 0 ? Station.CHANGI : Station.PAYA_LEBAR;
 
-        System.out.println("Query:");
-        System.out.println("Year range: " + startYear + " - " + endYear);
+        System.out.println("========== Query ==========");
+        System.out.println("Years to check: " + startYear + " & " + endYear);
         System.out.println("Station: " + station);
+        System.out.println("===========================");
 
         // generate monthly stats from query parameters
         Map<YearMonth, MonthlyStats> monthlyStats = db.getMonthlyStats(startYear, endYear, station);

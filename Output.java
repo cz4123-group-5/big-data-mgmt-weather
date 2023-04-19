@@ -8,6 +8,12 @@ import java.util.Collections;
 import java.util.Map;
 
 public class Output {
+    /**
+     * Writes the monthly stats to a CSV file.
+     * @param matricNum the matriculation number of the student
+     * @param monthlyStats the monthly stats to write
+     * @throws IOException if an I/O error occurs
+     */
     public static void writeStats(String matricNum, Map<YearMonth, MonthlyStats> monthlyStats) throws IOException {
 
         String filePath = "ScanResult_" + matricNum.toUpperCase() + ".csv";

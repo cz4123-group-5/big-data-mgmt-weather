@@ -14,59 +14,66 @@ public class SimpleColumnarDatabase {
     private final List<Station> stations;
     private final List<Double> temperatures;
     private final List<Double> humidities;
-    private final Map<Integer, Integer> indexMap;
+    private final SkipList indexList;
 
+    /**
+     * Constructor for SimpleColumnarDatabase
+     */
     public SimpleColumnarDatabase() {
         ids = new ArrayList<>();
         timestamps = new ArrayList<>();
         stations = new ArrayList<>();
         temperatures = new ArrayList<>();
         humidities = new ArrayList<>();
-        indexMap = new HashMap<>();
-    }
-
-    public void insert(int id, LocalDateTime timestamp, Station station, Double temperature, Double humidity) {
-        int index = Collections.binarySearch(timestamps, timestamp, (t1, t2) -> t1.compareTo(t2));
-
-        if (index < 0) {
-            index = -(index + 1);
-        }
-
-        ids.add(index, id);
-        timestamps.add(index, timestamp);
-        stations.add(index, station);
-        temperatures.add(index, temperature);
-        humidities.add(index, humidity);
-
-        for (int i = index; i < ids.size(); i++) {
-            indexMap.put(ids.get(i), i);
-        }
+        SkipList.TimestampComparator comparator = new SkipList.TimestampComparator(this.timestamps);
+        indexList = new SkipList(comparator);
     }
 
     /**
-     * Returns the maximum and minimum temperatures and humidities for each month within the specified years.
+     * Inserts a new record into the database
      *
-     * @param startYear the start year of the time period (inclusive)
-     * @param endYear   the end year of the time period (inclusive)
-     * @param station   the station name to filter the records by
-     * @return a map containing the year and month as a key (YearMonth), and a MonthlyStats object containing the maximum and minimum temperatures and humidities for that month as the value
+     * @param id          the id of the record
+     * @param timestamp   the timestamp of the record
+     * @param station     the station of the record
+     * @param temperature the temperature of the record
+     * @param humidity    the humidity of the record
+     */
+    public void insert(int id, LocalDateTime timestamp, Station station, Double temperature, Double humidity) {
+        // append new data
+        ids.add(id);
+        timestamps.add(timestamp);
+        stations.add(station);
+        temperatures.add(temperature);
+        humidities.add(humidity);
+
+        int unsortedIndex = ids.size() - 1;
+        indexList.add(unsortedIndex);
+    }
+
+    /**
+     * Gets the monthly stats for a given station
+     *
+     * @param startYear the start year
+     * @param endYear   the end year
+     * @param station   the station
+     * @return a map of YearMonth to MonthlyStats
      */
     public Map<YearMonth, MonthlyStats> getMonthlyStats(int startYear, int endYear, Station station) {
         System.out.println("Generating monthly stats...");
         Map<YearMonth, MonthlyStats> monthlyStatsMap = new HashMap<>();
 
-        for (int i = 0; i < timestamps.size(); i++) {
-            LocalDateTime timestamp = timestamps.get(i);
+        for (Integer unsortedIndex : indexList) {
+            LocalDateTime timestamp = timestamps.get(unsortedIndex);
             LocalDate date = timestamp.toLocalDate();
             int year = date.getYear();
 
-            if (year != startYear && year != endYear || !stations.get(i).equals(station)) {
+            if (year != startYear && year != endYear || !stations.get(unsortedIndex).equals(station)) {
                 continue;
             }
 
             YearMonth yearMonth = YearMonth.from(date);
-            Double temperature = temperatures.get(i);
-            Double humidity = humidities.get(i);
+            Double temperature = temperatures.get(unsortedIndex);
+            Double humidity = humidities.get(unsortedIndex);
 
             MonthlyStats currentStats = monthlyStatsMap.get(yearMonth);
             if (currentStats == null) {
@@ -121,10 +128,6 @@ public class SimpleColumnarDatabase {
                 }
             }
         }
-        System.out.println("Generated monthly stats.");
-
         return monthlyStatsMap;
     }
-
-
 }

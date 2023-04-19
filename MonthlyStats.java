@@ -41,6 +41,13 @@ class MonthlyStats {
         this.minHumidities.clear();
     }
 
+    /**
+     * Constructor for MonthlyStats
+     * @param date the date of the first entry
+     * @param station the station of the first entry
+     * @param temperature the temperature of the first entry
+     * @param humidity the humidity of the first entry
+     */
     public MonthlyStats(
             LocalDate date, Station station, Double temperature, Double humidity
     ) {
