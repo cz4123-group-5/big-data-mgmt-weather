@@ -19,12 +19,14 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
     private Class<E> elementType;
     private List<E> cache;
     private int cacheSize;
-    private final int cacheThreshold = 100000;
+    private final int cacheThreshold = 250000;
 
+    /**
+     * Constructor for ArrayListOnDisk
+     * @param filename the filename to use
+     * @param elementType the type of elements to store
+     */
     public ArrayListOnDisk(String filename, Class<E> elementType) {
-
-
-
         this.file = new File(filename);
         if (file.exists()) {
             file.delete();
@@ -68,6 +70,7 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
         return (int) size;
     }
 
+
     @Override
     public boolean add(E e) {
         cache.add(e);
@@ -105,20 +108,12 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
         } else if (elementType == Station.class) {
             Station value = (Station) object;
             byte[] nameBytes = value.getName().getBytes(StandardCharsets.UTF_8);
-//            System.out.println("value.getName(): " + value.getName());
-//            System.out.println("nameBytes.length: " + nameBytes.length);
-//            System.out.println("allocate: " + (Integer.BYTES + nameBytes.length) + " bytes (should be 24)");
             ByteBuffer buffer = ByteBuffer.allocate(getBufferSizeForType(elementType));
             buffer.putInt(nameBytes.length);
             buffer.put(nameBytes);
             // Padding
-//            System.out.println("bufferSize: " + bufferSize);
-//            System.out.println("Integer.BYTES: " + Integer.BYTES);
-//            System.out.println("nameBytes.length: " + nameBytes.length);
             int paddingSize = bufferSize - Integer.BYTES - nameBytes.length;
-//            System.out.println("paddingSize: " + paddingSize);
             for (int i = 0; i < paddingSize; i++) {
-//                System.out.println("padding: " + i);
                 buffer.put((byte) 0);
             }
             return buffer.array();

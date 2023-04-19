@@ -136,7 +136,6 @@ public class SimpleColumnarDatabase {
     }
 
     public void writeCachesToDisk() {
-        System.out.println("Writing caches to disk...");
         ids.writeCacheToDisk();
         timestamps.writeCacheToDisk();
         stations.writeCacheToDisk();
