@@ -10,7 +10,7 @@ import java.util.Map;
 public class Output {
     public static void writeStats(String matricNum, Map<YearMonth, MonthlyStats> monthlyStats) throws IOException {
 
-        String filePath = "ScanResult_" + matricNum + ".csv";
+        String filePath = "ScanResult_" + matricNum.toUpperCase() + ".csv";
         File outputFile = new File(filePath);
 
         // delete file if it exists, else output will be added on to existing file resulting in duplicates

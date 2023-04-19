@@ -60,7 +60,7 @@ public class SimpleColumnarDatabase {
             LocalDate date = timestamp.toLocalDate();
             int year = date.getYear();
 
-            if (year < startYear || year > endYear || !stations.get(i).equals(station)) {
+            if (year != startYear && year != endYear || !stations.get(i).equals(station)) {
                 continue;
             }
 
