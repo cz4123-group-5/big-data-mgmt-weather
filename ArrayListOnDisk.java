@@ -150,4 +150,8 @@ public class ArrayListOnDisk<E> extends AbstractList<E> implements List<E> {
         raf.close();
         super.finalize();
     }
+
+    public void writeCacheToDisk() {
+        // not implemented yet
+    }
 }

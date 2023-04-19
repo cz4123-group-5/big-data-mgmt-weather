@@ -9,11 +9,11 @@ import java.util.*;
  */
 public class SimpleColumnarDatabase {
 
-    private final List<Integer> ids;
-    private final List<LocalDateTime> timestamps;
-    private final List<Station> stations;
-    private final List<Double> temperatures;
-    private final List<Double> humidities;
+    private final ArrayListOnDisk<Integer> ids;
+    private final ArrayListOnDisk<LocalDateTime> timestamps;
+    private final ArrayListOnDisk<Station> stations;
+    private final ArrayListOnDisk<Double> temperatures;
+    private final ArrayListOnDisk<Double> humidities;
     private final SkipList indexList;
 
     /**
@@ -41,7 +41,7 @@ public class SimpleColumnarDatabase {
      */
     public void insert(int id, LocalDateTime timestamp, Station station, Double temperature, Double humidity) {
         // print the id
-        System.out.println("Inserting id: " + id);
+//        System.out.println("Inserting id: " + id);
 
         // append new data
         ids.add(id);
@@ -133,5 +133,14 @@ public class SimpleColumnarDatabase {
             }
         }
         return monthlyStatsMap;
+    }
+
+    public void writeCachesToDisk() {
+        System.out.println("Writing caches to disk...");
+        ids.writeCacheToDisk();
+        timestamps.writeCacheToDisk();
+        stations.writeCacheToDisk();
+        temperatures.writeCacheToDisk();
+        humidities.writeCacheToDisk();
     }
 }
