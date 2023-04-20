@@ -9,22 +9,23 @@ import java.util.*;
  */
 public class SimpleColumnarDatabase {
 
-    private final List<Integer> ids;
-    private final List<LocalDateTime> timestamps;
-    private final List<Station> stations;
-    private final List<Double> temperatures;
-    private final List<Double> humidities;
+    private final ArrayListOnDisk<Integer> ids;
+    private final ArrayListOnDisk<LocalDateTime> timestamps;
+    private final ArrayListOnDisk<Station> stations;
+    private final ArrayListOnDisk<Double> temperatures;
+    private final ArrayListOnDisk<Double> humidities;
     private final SkipList indexList;
 
     /**
      * Constructor for SimpleColumnarDatabase
      */
     public SimpleColumnarDatabase() {
-        ids = new ArrayList<>();
-        timestamps = new ArrayList<>();
-        stations = new ArrayList<>();
-        temperatures = new ArrayList<>();
-        humidities = new ArrayList<>();
+        ids = new ArrayListOnDisk<>("ids.dat", Integer.class);
+        timestamps = new ArrayListOnDisk<>("timestamps.dat", LocalDateTime.class);
+        stations = new ArrayListOnDisk<>("stations.dat", Station.class);
+        temperatures = new ArrayListOnDisk<>("temperatures.dat", Double.class);
+        humidities = new ArrayListOnDisk<>("humidities.dat", Double.class);
+
         SkipList.TimestampComparator comparator = new SkipList.TimestampComparator(this.timestamps);
         indexList = new SkipList(comparator);
     }
@@ -39,6 +40,9 @@ public class SimpleColumnarDatabase {
      * @param humidity    the humidity of the record
      */
     public void insert(int id, LocalDateTime timestamp, Station station, Double temperature, Double humidity) {
+        // print the id
+//        System.out.println("Inserting id: " + id);
+
         // append new data
         ids.add(id);
         timestamps.add(timestamp);
@@ -129,5 +133,13 @@ public class SimpleColumnarDatabase {
             }
         }
         return monthlyStatsMap;
+    }
+
+    public void writeCachesToDisk() {
+        ids.writeCacheToDisk();
+        timestamps.writeCacheToDisk();
+        stations.writeCacheToDisk();
+        temperatures.writeCacheToDisk();
+        humidities.writeCacheToDisk();
     }
 }

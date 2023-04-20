@@ -18,6 +18,8 @@ public class Main {
         // parse data file
         BufferedReader reader;
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        System.out.println("Parsing data file, please wait a moment...");
         try {
             reader = new BufferedReader(new FileReader("SingaporeWeather.csv"));
             String line = reader.readLine(); //  read and discard first line (csv headers)
@@ -49,6 +51,7 @@ public class Main {
                         temperature,
                         humidity);
             }
+            db.writeCachesToDisk();
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -58,6 +61,12 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter your matriculation number: ");
         String matriculationNumber = scanner.nextLine();
+
+        // check that matriculation number has valid format i.e. U2022923F or U1921880A
+        if (!matriculationNumber.matches("U[0-9]{7}[A-Z]")) {
+            System.out.println("Invalid matriculation number format.");
+            return;
+        }
 
         int lastDigit = Character.getNumericValue(matriculationNumber.charAt(matriculationNumber.length() - 2));
         int startYear = lastDigit > 1 ? 2000 + lastDigit : 2010 + lastDigit;
