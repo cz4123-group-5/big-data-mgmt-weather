@@ -59,11 +59,11 @@ public class Main {
 
         // handle query
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter your matriculation number: ");
+        System.out.print("Enter your matriculation number (in caps): ");
         String matriculationNumber = scanner.nextLine();
 
         // check that matriculation number has valid format i.e. U2022923F or U1921880A
-        if (!matriculationNumber.matches("U[0-9]{7}[A-Z]")) {
+        if (!matriculationNumber.matches("[A-Z][0-9]{7}[A-Z]")) {
             System.out.println("Invalid matriculation number format.");
             return;
         }
